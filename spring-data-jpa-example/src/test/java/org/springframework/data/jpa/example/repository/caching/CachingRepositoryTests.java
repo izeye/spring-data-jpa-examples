@@ -38,14 +38,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
 @ContextConfiguration(classes = CachingConfiguration.class)
-public abstract class CachingRepositoryTests {
+public class CachingRepositoryTests {
 
 	@Autowired CachingUserRepository repository;
 	@Autowired CacheManager cacheManager;
 
 	@Test
 	public void cachesValuesReturnedForQueryMethod() {
-
 		User dave = new User();
 		dave.setUsername("dmatthews");
 
@@ -58,5 +57,10 @@ public abstract class CachingRepositoryTests {
 		Cache cache = cacheManager.getCache("byUsername");
 		ValueWrapper wrapper = cache.get("dmatthews");
 		assertThat(wrapper.get(), is((Object) dave));
+
+		// Verify entity evicted
+		repository.save(dave);
+		assertThat(cache.get("dmatthews"), is(nullValue()));
 	}
+
 }
